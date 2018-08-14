@@ -62,22 +62,22 @@ declare class Promise<+R> {
 
 	finally<U>(onDone?: () => mixed): Promise<U>;
 
-	each<T, U>(iterator: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<T[]>;
+	each<U>(iterator: (item: R, index: number, arrayLength: number) => Promise<U> | U): Promise<R[]>;
 
-	map<T, U>(mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U, options?: Bluebird$ConcurrencyOption): Promise<Array<U>>;
+	map<U>(mapper: (item: R, index: number, arrayLength: number) => Promise<U> | U, options?: Bluebird$ConcurrencyOption): Promise<Array<U>>;
 
-	filter<T>(iterator: (item: T, index: number, arrayLength: number) => Promise<boolean> | boolean): Promise<T[]>;
+	filter(iterator: (item: R, index: number, arrayLength: number) => Promise<boolean> | boolean): Promise<R[]>;
 
 	isFulfilled(): boolean;
 	isPending(): boolean;
 
 	return<T>(returnValue: T): Promise<T>;
 
-	reduce<T>(mapper: (accumulator: any, item: T, index: number, arrayLength: number) => any, initialValue: any): Promise<any>;
+	reduce<T>(mapper: (accumulator: T, item: R, index: number, arrayLength: number) => $Promisable<T>, initialValue?: $Promisable<T>): Promise<T>;
 
 	spread<T>(...args: Array<T>): Promise<*>;
 
-	delay<T>(millis: number): Promise<T>;
+	delay(millis: number): Promise<R>;
 
 	static resolve<T>(object?: Promise<T> | T): Promise<T>;
 	static reject<T>(error?: any): Promise<T>;

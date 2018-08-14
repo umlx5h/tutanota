@@ -66,6 +66,10 @@ export class FileController {
 		// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
 		// remove the last file input
 
+		Promise.map(["1", "2"], (e) => {
+			return Number(e)
+		}).map(n => n.asdfa)
+
 		const fileInput = document.getElementById("hiddenFileChooser");
 		const body = neverNull(document.body)
 		if (fileInput) {

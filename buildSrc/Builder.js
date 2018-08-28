@@ -5,7 +5,7 @@ const BuildCache = require('./BuildCache.js')
 const path = require("path")
 const fs = Promise.Promise.promisifyAll(require("fs-extra"))
 const chokidar = require('chokidar')
-const babel = Promise.promisifyAll(require("babel-core"))
+const babel = Promise.promisifyAll(require("@babel/core"))
 
 const srcDir = "src"
 
@@ -40,36 +40,37 @@ class Builder {
 	build(srcDirs, watch) {
 		return new Promise((resolve, reject) => {
 			let watcher = chokidar.watch(srcDirs, {ignoreInitial: true, followSymlinks: true, cwd: this.baseDir})
-				.on('change', (file) => this._translateIfChanged(file).then(() => watch()))
-				.on('add', (file) => this._translateIfChanged(file).then(() => watch()))
-				.on('unlink', file => this._deleteFile(file).then(() => watch()))
-				.on('ready', () => {
-					let watched = watcher.getWatched()
-					let dirs = Object.keys(watched)
-					let currentFiles = []
-					for (let dir of dirs) {
-						for (let filename of watched[dir]) {
-							var file = path.join(this.baseDir, dir + "/" + filename)
-							if (fs.statSync(file).isFile())
-								currentFiles.push(file)
-						}
-					}
+			                      .on('change', (file) => this._translateIfChanged(file).then(() => watch()))
+			                      .on('add', (file) => this._translateIfChanged(file).then(() => watch()))
+			                      .on('unlink', file => this._deleteFile(file).then(() => watch()))
+			                      .on('ready', () => {
+				                      let watched = watcher.getWatched()
+				                      let dirs = Object.keys(watched)
+				                      let currentFiles = []
+				                      for (let dir of dirs) {
+					                      for (let filename of watched[dir]) {
+						                      var file = path.join(this.baseDir, dir + "/" + filename)
+						                      if (fs.statSync(file).isFile()) {
+							                      currentFiles.push(file)
+						                      }
+					                      }
+				                      }
 
-					let cachedFiles = this._buildCache.getCachedFiles()
+				                      let cachedFiles = this._buildCache.getCachedFiles()
 
-					let promises = currentFiles.map(file => this._translateIfChanged(file))
-					let deletedFiles = cachedFiles.filter(file => currentFiles.indexOf(file) === -1)
-					Promise.all(promises.concat(deletedFiles.map(file => this._deleteFile(file))))
-						.then(() => {
-							this._ready = true
-							this._runFlow()
-						})
-						.then(resolve)
+				                      let promises = currentFiles.map(file => this._translateIfChanged(file))
+				                      let deletedFiles = cachedFiles.filter(file => currentFiles.indexOf(file) === -1)
+				                      Promise.all(promises.concat(deletedFiles.map(file => this._deleteFile(file))))
+				                             .then(() => {
+					                             this._ready = true
+					                             this._runFlow()
+				                             })
+				                             .then(resolve)
 
-					if (!watch) {
-						watcher.close()
-					}
-				})
+				                      if (!watch) {
+					                      watcher.close()
+				                      }
+			                      })
 		})
 
 	}
@@ -106,7 +107,8 @@ class Builder {
 				return this._writeFile(targetFile, result.code)
 			})
 		} else {
-			return fs.ensureDirAsync(path.dirname(targetFile)).then(() => fs.copyAsync(srcFile, targetFile, {replace: true}))
+			return fs.ensureDirAsync(path.dirname(targetFile))
+			         .then(() => fs.copyAsync(srcFile, targetFile, {replace: true}))
 		}
 	}
 
@@ -128,22 +130,42 @@ class Builder {
 	}
 }
 
-function babelCompile(src, srcFile) {
-	let result = babel.transform(src, {
+function babelCompile(src, srcFile, minify) {
+	const presets = [
+		[
+			"@babel/env", {
+			targets: [
+				"> 1%",
+				"Firefox 52",
+				"last 2 iOS major versions",
+				"not dead",
+				"not ie 11",
+				"node 6"
+			],
+			useBuiltIns: "false"
+		}
+		],
+	].concat(minify
+		? [
+			[
+				"minify", {
+				"keepClassName": true
+			}
+			]
+		]
+		: [])
+	return babel.transform(src, {
 		"plugins": [
 			"transform-flow-strip-types",
 			"transform-class-properties",
 		],
-		"presets": [
-			"es2015"
-		],
+		presets,
 		comments: false,
 		babelrc: false,
 		retainLines: true,
 		sourceMaps: srcFile != null ? "inline" : false,
 		filename: srcFile,
 	})
-	return result
 }
 
 module.exports = {

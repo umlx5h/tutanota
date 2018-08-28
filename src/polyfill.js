@@ -4,8 +4,6 @@ import "core-js/es6/object.js"
 import "core-js/es6/string.js"
 import "core-js/es6/map.js"
 
-// is built by helpers/update-polyfill.js
-
 
 if (typeof window !== 'undefined') {
 	window.performance = (window.performance || {

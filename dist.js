@@ -42,7 +42,7 @@ clean()
 	.then(() => fs.readFileAsync('src/api/worker/WorkerBootstrap.js', 'utf-8').then(bootstrap => {
 		let lines = bootstrap.split("\n")
 		lines[0] = `importScripts('libs.js')`
-		let code = babelCompile(lines.join("\n")).code
+		let code = babelCompile(lines.join("\n"), undefined, true).code
 		return fs.writeFileAsync('build/dist/WorkerBootstrap.js', code, 'utf-8')
 	}))
 	.then(() => {

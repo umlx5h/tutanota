@@ -121,7 +121,8 @@ export class Indexer {
 				return this._contact.indexFullContactList(user.userGroup.group)
 				           .then(() => this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user))
 				           .then(() => this._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin(user))
-				           .then(() => this._mail.mailboxIndexingPromise.then(() => this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp)))
+				           .then(() => this._mail.mailboxIndexingPromise.then(() => this._mail.indexMailboxes(user, this._mail.currentIndexTimestamp))
+				                           .catch(CancelledError, noOp))
 				           .then(() => this._loadPersistentGroupData(user)
 				                           .then(groupIdToEventBatches => this._loadNewEntities(groupIdToEventBatches)))
 				           .catch(OutOfSyncError, e => {
@@ -173,7 +174,10 @@ export class Indexer {
 			           if (!this._core.isStoppedProcessing()) {
 				           this._core.stopProcessing()
 				           return this._mail.disableMailIndexing()
-				                      .then(() => this.init(this._initParams.user, this._initParams.groupKey))
+				                      .then(() => {
+					                      this.init(this._initParams.user, this._initParams.groupKey)
+					                          .catch(CancelledError, noOp)
+				                      })
 			           }
 		           })
 	}

@@ -156,7 +156,7 @@ type JsRequestType = 'createMailEditor'
 	| 'keyboardSizeChanged'
 
 
-type Callback = (err: ?Error, data: ?Object) => Object
+type Callback<T> = (err: ?Error, data?: T) => void
 type Command = (msg: Request) => Promise<any>
 
 

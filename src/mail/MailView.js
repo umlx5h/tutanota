@@ -75,8 +75,8 @@ export class MailView implements CurrentView {
 	mailHeaderInfo: string;
 	oncreate: Function;
 	onbeforeremove: Function;
-	_mailboxExpanders: { [mailGroupId: Id]: MailboxExpander }
-	_folderToUrl: { [folderId: Id]: string };
+	_mailboxExpanders: {[mailGroupId: Id]: MailboxExpander}
+	_folderToUrl: {[folderId: Id]: string};
 	_multiMailViewer: MultiMailViewer;
 	_actionBar: lazy<ActionBar>
 
@@ -90,14 +90,14 @@ export class MailView implements CurrentView {
 		this.folderColumn = new ViewColumn({
 			view: () => m(".folder-column.scroll.overflow-x-hidden",
 				Object.keys(this._mailboxExpanders)
-					.map(mailGroupId => {
-							let expander = this._mailboxExpanders[mailGroupId]
-							return [
-								m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
-								m(neverNull(expander.expanderButton).panel)
-							]
-						}
-					))
+				      .map(mailGroupId => {
+						      let expander = this._mailboxExpanders[mailGroupId]
+						      return [
+							      m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
+							      m(neverNull(expander.expanderButton).panel)
+						      ]
+					      }
+				      ))
 		}, ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label"))
 
 
@@ -151,7 +151,11 @@ export class MailView implements CurrentView {
 
 		this._setupShortcuts()
 
-		locator.entityEvent.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+		locator.entityEvent.addListener((updates) => {
+			for (let update of updates) {
+				this.entityEventReceived(new TypeRef(update.application, update.type), update.instanceListId, update.instanceId, update.operation)
+			}
+		})
 	}
 
 	getViewSlider(): ?IViewSlider {
@@ -336,11 +340,11 @@ export class MailView implements CurrentView {
 		let folderMoreButton = this.createFolderMoreButton(mailGroupId)
 		let purgeAllButton = new Button('delete_action', () => {
 			Dialog.confirm(() => lang.get("confirmDeleteFinallySystemFolder_msg", {"{1}": getFolderName(this.selectedFolder)}))
-				.then(confirmed => {
-					if (confirmed) {
-						this._finallyDeleteAllMailsInSelectedFolder()
-					}
-				})
+			      .then(confirmed => {
+				      if (confirmed) {
+					      this._finallyDeleteAllMailsInSelectedFolder()
+				      }
+			      })
 		}, () => Icons.TrashEmpty).setColors(ButtonColors.Nav)
 
 		let mailboxExpander = new ExpanderButton(() => getMailboxName(mailModel.getMailboxDetailsForMailGroup(mailGroupId)), new ExpanderPanel({
@@ -352,27 +356,27 @@ export class MailView implements CurrentView {
 						onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
 					}) : null
 				]))
-				.concat(
-					logins.isInternalUserLoggedIn() ? [
-						m(".folder-row.flex-space-between.plr-l", [
-							m("small.b.pt-s.align-self-center.ml-negative-xs",
-								{style: {color: theme.navigation_button}},
-								lang.get("yourFolders_action")
-									.toLocaleUpperCase()),
-							m(neverNull(this._mailboxExpanders[mailGroupId].folderAddButton))
-						])
-					] : []
-				)
-				.concat(
-					this._mailboxExpanders[mailGroupId].customFolderButtons.map(fb =>
-						m(".folder-row.flex-space-between.plr-l"
-							+ (fb.isSelected() ? ".row-selected" : ""), [
-							m(fb),
-							fb.isSelected() ? m(folderMoreButton, {
-								oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
-								onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
-							}) : null
-						]))))
+			                                                             .concat(
+				                                                             logins.isInternalUserLoggedIn() ? [
+					                                                             m(".folder-row.flex-space-between.plr-l", [
+						                                                             m("small.b.pt-s.align-self-center.ml-negative-xs",
+							                                                             {style: {color: theme.navigation_button}},
+							                                                             lang.get("yourFolders_action")
+							                                                                 .toLocaleUpperCase()),
+						                                                             m(neverNull(this._mailboxExpanders[mailGroupId].folderAddButton))
+					                                                             ])
+				                                                             ] : []
+			                                                             )
+			                                                             .concat(
+				                                                             this._mailboxExpanders[mailGroupId].customFolderButtons.map(fb =>
+					                                                             m(".folder-row.flex-space-between.plr-l"
+						                                                             + (fb.isSelected() ? ".row-selected" : ""), [
+						                                                             m(fb),
+						                                                             fb.isSelected() ? m(folderMoreButton, {
+							                                                             oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
+							                                                             onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
+						                                                             }) : null
+					                                                             ]))))
 		}), false, {}, theme.navigation_button)
 		mailboxExpander.toggle()
 		return mailboxExpander
@@ -401,7 +405,7 @@ export class MailView implements CurrentView {
 			let userGroupInfo = logins.getUserController().userGroupInfo
 			pushServiceApp.closePushNotification(
 				userGroupInfo.mailAddressAliases.map(alias => alias.mailAddress)
-					.concat(userGroupInfo.mailAddress || []))
+				             .concat(userGroupInfo.mailAddress || []))
 		}
 
 		if (this.isInitialized() && args.listId && this.mailList && args.listId !== this.mailList.listId) {
@@ -495,11 +499,11 @@ export class MailView implements CurrentView {
 		return new Button('add_action', () => {
 			return Dialog.showTextInputDialog("folderNameCreate_label", "folderName_label", null, "",
 				(name) => this._checkFolderName(name, mailGroupId))
-				.then((name) => {
-					return worker.createMailFolder(name,
-						getInboxFolder(mailModel.getMailboxDetailsForMailGroup(mailGroupId).folders)._id,
-						mailGroupId)
-				})
+			             .then((name) => {
+				             return worker.createMailFolder(name,
+					             getInboxFolder(mailModel.getMailboxDetailsForMailGroup(mailGroupId).folders)._id,
+					             mailGroupId)
+			             })
 		}, () => Icons.Add).setColors(ButtonColors.Nav)
 	}
 
@@ -508,19 +512,19 @@ export class MailView implements CurrentView {
 			new Button('rename_action', () => {
 				return Dialog.showTextInputDialog("folderNameRename_label", "folderName_label", null,
 					getFolderName(this.selectedFolder), (name) => this._checkFolderName(name, mailGroupId))
-					.then((newName) => {
-						let renamedFolder = Object.assign({}, this.selectedFolder, {name: newName})
-						return update(renamedFolder)
-					})
+				             .then((newName) => {
+					             let renamedFolder = Object.assign({}, this.selectedFolder, {name: newName})
+					             return update(renamedFolder)
+				             })
 			}, () => Icons.Edit).setType(ButtonType.Dropdown),
 			new Button('delete_action', () => {
 				Dialog.confirm(() => lang.get("confirmDeleteFinallyCustomFolder_msg",
 					{"{1}": getFolderName(this.selectedFolder)}))
-					.then(confirmed => {
-						if (confirmed) {
-							this._finallyDeleteCustomMailFolder()
-						}
-					})
+				      .then(confirmed => {
+					      if (confirmed) {
+						      this._finallyDeleteCustomMailFolder()
+					      }
+				      })
 			}, () => Icons.Trash).setType(ButtonType.Dropdown)
 		]).setColors(ButtonColors.Nav)
 	}

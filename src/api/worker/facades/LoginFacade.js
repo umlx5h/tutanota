@@ -11,13 +11,7 @@ import {
 } from "../../common/utils/Encoding"
 import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
-import {
-	base64ToKey,
-	createAuthVerifier,
-	createAuthVerifierAsBase64Url,
-	keyToUint8Array,
-	uint8ArrayToKey
-} from "../crypto/CryptoUtils"
+import {base64ToKey, createAuthVerifier, createAuthVerifierAsBase64Url, keyToUint8Array, uint8ArrayToKey} from "../crypto/CryptoUtils"
 import {decryptKey, encryptBytes, encryptKey, encryptString} from "../crypto/CryptoFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {AccountType, CloseEventBusOption, GroupType, OperationType} from "../../common/TutanotaConstants"
@@ -31,14 +25,7 @@ import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaPropert
 import {UserTypeRef} from "../../entities/sys/User"
 import {createReceiveInfoServiceData} from "../../entities/tutanota/ReceiveInfoServiceData"
 import {defer, neverNull} from "../../common/utils/Utils"
-import {
-	GENERATED_ID_BYTES_LENGTH,
-	HttpMethod,
-	isSameId,
-	isSameTypeRef,
-	MediaType,
-	TypeRef
-} from "../../common/EntityFunctions"
+import {GENERATED_ID_BYTES_LENGTH, HttpMethod, isSameId, isSameTypeRef, MediaType, TypeRef} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../Env"
 import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
@@ -456,22 +443,24 @@ export class LoginFacade {
 		})
 	}
 
-	entityEventReceived(data: EntityUpdate): Promise<void> {
-		if (this._user && data.operation === OperationType.UPDATE
-			&& isSameTypeRef(new TypeRef(data.application, data.type), UserTypeRef)
-			&& isSameId(this._user._id, data.instanceId)) {
-			return load(UserTypeRef, this._user._id).then(updatedUser => {
-				this._user = updatedUser
-			})
-		} else if (this._userGroupInfo && data.operation === OperationType.UPDATE
-			&& isSameTypeRef(new TypeRef(data.application, data.type), GroupInfoTypeRef)
-			&& isSameId(this._userGroupInfo._id, [neverNull(data.instanceListId), data.instanceId])) {
-			return load(GroupInfoTypeRef, this._userGroupInfo._id).then(updatedUserGroupInfo => {
-				this._userGroupInfo = updatedUserGroupInfo
-			})
-		} else {
-			return Promise.resolve()
-		}
+	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
+		return Promise.each(data, (update) => {
+			if (this._user && update.operation === OperationType.UPDATE
+				&& isSameTypeRef(new TypeRef(update.application, update.type), UserTypeRef)
+				&& isSameId(this._user._id, update.instanceId)) {
+				return load(UserTypeRef, this._user._id).then(updatedUser => {
+					this._user = updatedUser
+				})
+			} else if (this._userGroupInfo && update.operation === OperationType.UPDATE
+				&& isSameTypeRef(new TypeRef(update.application, update.type), GroupInfoTypeRef)
+				&& isSameId(this._userGroupInfo._id, [neverNull(update.instanceListId), update.instanceId])) {
+				return load(GroupInfoTypeRef, this._userGroupInfo._id).then(updatedUserGroupInfo => {
+					this._userGroupInfo = updatedUserGroupInfo
+				})
+			} else {
+				return Promise.resolve()
+			}
+		}).return()
 	}
 
 	changePassword(oldPassword: string, newPassword: string): Promise<void> {

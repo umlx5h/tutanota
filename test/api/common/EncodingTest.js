@@ -113,6 +113,11 @@ o.spec("Encoding", function () {
 		o(Array.from(base64ToUint8Array(uint8ArrayToBase64(new Uint8Array([0, 255]))))).deepEquals([0, 255])
 
 
+		let largeByteArray = [];
+		for (let i = 0; i < 80000; i++) {
+			largeByteArray.push(i % 256)
+		}
+		o(Array.from(base64ToUint8Array(uint8ArrayToBase64(new Uint8Array(largeByteArray))))).deepEquals(largeByteArray)
 	})
 
 	o("Base64ToBase64Ext ", function () {

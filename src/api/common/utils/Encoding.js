@@ -253,12 +253,17 @@ export function uint8ArrayToHex(uint8Array: Uint8Array): Hex {
  * @return The Base64 encoded string.
  */
 export function uint8ArrayToBase64(bytes: Uint8Array): Base64 {
-	let binary = ''
+	if (bytes.length < 60000) {
+		// Apply fails on big arrays fairly often
+		return btoa(String.fromCharCode.apply(null, bytes))
+	}
+	// Because we're not just appending literals, it seems like array make less garbage
+	let binary = []
 	let len = bytes.byteLength
 	for (let i = 0; i < len; i++) {
-		binary += String.fromCharCode(bytes[i])
+		binary.push(String.fromCharCode(bytes[i]))
 	}
-	return btoa(binary)
+	return btoa(binary.join(""))
 }
 
 export function int8ArrayToBase64(bytes: Int8Array): Base64 {

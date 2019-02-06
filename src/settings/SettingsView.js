@@ -38,6 +38,9 @@ import {showUserImportDialog} from "./UserViewer"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {getAvailableDomains} from "./AddUserDialog"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
+import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
+import {Dialog} from "../gui/base/Dialog"
+import {ButtonN} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -259,13 +262,37 @@ export class SettingsView implements CurrentView {
 		const lnk = `https://github.com/tutao/tutanota/releases/tutanota-${pltf}release-${env.versionNumber}`
 		return m(".pb-s.pt-l.flex-no-shrink.flex.col.justify-end", [
 			m("a.text-center.small.no-text-decoration", {
-					href: lnk,
-					target: '_blank',
+					href: '#',
+					onclick: () => {
+						const headerBar = new DialogHeaderBar()
+						const dialog = Dialog.largeDialog(headerBar, AboutDialog).show()
+						headerBar.addRight(new Button("ok_action", () => dialog.close()).setType(ButtonType.Secondary))
+					}
 				}, [
 					m("", `Tutanota v${env.versionNumber}`),
-					m(".underline", lang.get('releaseNotes_action'))
+					m(".underline", "About")
 				]
 			)
+		])
+	}
+}
+
+class AboutDialog implements MComponent<void> {
+	view(vnode: Vnode<void>): ?Children {
+		return m(".flex.col", [
+			m(".center.h1.b", `Tutanota v${env.versionNumber}`),
+			m("a.text-center.small.no-text-decoration", {
+					href: 'https://github.com/tutao/tutanota/releases',
+					target: '_blank'
+				}, [
+					m(".underline", 'Source-Code')
+				]
+			),
+			m(ButtonN, {
+				label: () => 'Send Logs',
+				click: () => {},
+				type: ButtonType.Primary
+			})
 		])
 	}
 }

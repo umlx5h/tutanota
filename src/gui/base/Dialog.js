@@ -575,7 +575,7 @@ export class Dialog {
 		})
 	}
 
-	static largeDialog(headerBar: DialogHeaderBar | DialogHeaderBarN, child: Component): Dialog {
+	static largeDialog(headerBar: DialogHeaderBar | DialogHeaderBarN, child: (Component | Class<MComponent<void>>)): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {
 				return m("", [
